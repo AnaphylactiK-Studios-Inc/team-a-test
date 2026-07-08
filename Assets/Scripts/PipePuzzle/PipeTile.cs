@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PipeTile : MonoBehaviour
 {
@@ -15,11 +16,19 @@ public class PipeTile : MonoBehaviour
         new[] { 2 },             // Endpoint  – S (rotate so inward side faces the grid)
     };
 
+    // One sprite per tile type in TileType enum order:
+    // 0=Dead, 1=Straight, 2=Elbow, 3=T, 4=Cross, 5=Source, 6=Endpoint
+    [SerializeField] Sprite[] typeSprites;
+    [SerializeField] GameObject highlightOverlay;
+
     public TileDefinition data;
     PipeGrid _grid;
+    Image _image;
 
     public void Init(TileDefinition def, PipeGrid grid)
     {
+        _image = GetComponent<Image>();
+        highlightOverlay?.SetActive(false);
         data = new TileDefinition
         {
             type = def.type,
@@ -27,7 +36,15 @@ public class PipeTile : MonoBehaviour
             endpointSystem = def.endpointSystem
         };
         _grid = grid;
+        ApplySprite();
         ApplyRotation();
+    }
+
+    void ApplySprite()
+    {
+        int idx = (int)data.type;
+        if (_image != null && typeSprites != null && idx < typeSprites.Length)
+            _image.sprite = typeSprites[idx];
     }
 
     public bool HasOpenSide(int dir)
@@ -46,7 +63,8 @@ public class PipeTile : MonoBehaviour
         return result;
     }
 
-    // Called by player input — Dead, Source, and Endpoint tiles cannot be rotated
+    public void SetHighlighted(bool on) => highlightOverlay?.SetActive(on);
+
     public void Rotate()
     {
         if (data.type == TileType.Dead ||
@@ -60,6 +78,6 @@ public class PipeTile : MonoBehaviour
 
     void ApplyRotation()
     {
-        transform.localRotation = Quaternion.Euler(0f, data.rotation * 90f, 0f);
+        transform.localRotation = Quaternion.Euler(0f, 0f, -data.rotation * 90f);
     }
 }

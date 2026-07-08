@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class MouseMove : MonoBehaviour
 {
@@ -11,6 +12,15 @@ public class MouseMove : MonoBehaviour
 
     public Camera playerCam;
 
+    [Header("Controller Reticle")]
+    [SerializeField] float reticleControllerSpeed = 800f;
+    [SerializeField] bool invertStickY = false;
+    public bool reticleEnabled = true;
+    public Vector2 ReticleScreenPos => _reticlePos;
+
+    InputSystem_Actions _input;
+    Vector2 _reticlePos;
+
     float xRotation = 0f;
 
     bool menu = false;
@@ -19,15 +29,18 @@ public class MouseMove : MonoBehaviour
 
     void Awake()
     {
-        // Fallback to the root object so yaw still works if playerBody is not set in the inspector.
         if (playerBody == null)
-        {
             playerBody = transform.root;
-        }
+
+        _input = new InputSystem_Actions();
     }
+
+    void OnEnable()  => _input.Enable();
+    void OnDisable() => _input.Disable();
 
     void Start()
     {
+        _reticlePos = new Vector2(Screen.width / 2f, Screen.height / 2f);
         LockCursor(true);
 
         if (menuScreen != null)
@@ -56,9 +69,14 @@ public class MouseMove : MonoBehaviour
         if (lookLocked) return;
 
 
-        if (!menu)
+        if (!menu && reticleEnabled)
         {
-            reticle.position = Input.mousePosition;
+            Vector2 stick = _input.Game.Look.ReadValue<Vector2>();
+            stick.y *= invertStickY ? -1f : 1f;
+            _reticlePos += stick * reticleControllerSpeed * Time.unscaledDeltaTime;
+            _reticlePos.x = Mathf.Clamp(_reticlePos.x, 0f, Screen.width);
+            _reticlePos.y = Mathf.Clamp(_reticlePos.y, 0f, Screen.height);
+            reticle.position = _reticlePos;
         }
 
         // xRotation -= mousey * mouseSense;

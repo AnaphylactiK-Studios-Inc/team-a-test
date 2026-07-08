@@ -6,6 +6,7 @@ public class PipeGridEditor : Editor
 {
     static readonly string[] TileTypeLabels = { "Dead", "Straight", "Elbow", "T", "Cross", "Source", "Endpoint" };
     static readonly string[] RotLabels = { "0°", "90°", "180°", "270°" };
+    static readonly string[] EndpointRotLabels = { "Top Edge ↓", "Right Edge ←", "Bottom Edge ↑", "Left Edge →" };
     static readonly string[] SystemLabels = { "None", "ShieldBuster", "Gun", "Shield", "Healing" };
 
     static readonly Color[] TileColors =
@@ -86,7 +87,8 @@ public class PipeGridEditor : Editor
                 bool canRotate = tile.type != TileType.Dead && tile.type != TileType.Source;
                 if (canRotate)
                 {
-                    int newRot = EditorGUILayout.Popup(tile.rotation, RotLabels);
+                    var labels = tile.type == TileType.Endpoint ? EndpointRotLabels : RotLabels;
+                    int newRot = EditorGUILayout.Popup(tile.rotation, labels);
                     if (newRot != tile.rotation)
                     {
                         Undo.RecordObject(grid, "Change Tile Rotation");

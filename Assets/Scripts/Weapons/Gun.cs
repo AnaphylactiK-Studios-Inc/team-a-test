@@ -14,6 +14,7 @@ public class Gun : MonoBehaviour
     [SerializeField] float range = 100f;
     [SerializeField] LayerMask hitLayers;
     [SerializeField] Camera _cam;
+    [SerializeField] MouseMove _mouseMove;
 
     float _nextFireTime;
 
@@ -29,7 +30,8 @@ public class Gun : MonoBehaviour
     void Fire()
     {
         Camera cam = _cam != null ? _cam : Camera.main;
-        Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+        Vector2 screenPos = _mouseMove != null ? _mouseMove.ReticleScreenPos : (Vector2)Input.mousePosition;
+        Ray ray = cam.ScreenPointToRay(screenPos);
         if (!Physics.Raycast(ray, out RaycastHit hit, range, hitLayers))
             return;
 

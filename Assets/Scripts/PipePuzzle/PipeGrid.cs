@@ -36,12 +36,32 @@ public class PipeGrid : MonoBehaviour
     {
         EnsureTileArraySize();
         BuildRuntime();
+        GetTile(_highlight)?.SetHighlighted(true);
         Solve();
     }
 
     void BuildRuntime()
     {
         _runtimeTiles = new PipeTile[width * height];
+
+        RectTransform rt = GetComponent<RectTransform>();
+        float cellW, cellH;
+        Vector2 origin;
+
+        if (rt != null)
+        {
+            cellW  = rt.rect.width  / width;
+            cellH  = rt.rect.height / height;
+            origin = new Vector2(-rt.rect.width / 2f + cellW / 2f,
+                                  rt.rect.height / 2f - cellH / 2f);
+        }
+        else
+        {
+            cellW  = cellSize;
+            cellH  = cellSize;
+            origin = Vector2.zero;
+        }
+
         for (int row = 0; row < height; row++)
         {
             for (int col = 0; col < width; col++)
@@ -51,7 +71,12 @@ public class PipeGrid : MonoBehaviour
                     ? Instantiate(tilePrefab, transform)
                     : new GameObject($"Tile_{col}_{row}");
                 go.transform.SetParent(transform, false);
-                go.transform.localPosition = new Vector3(col * cellSize, 0f, row * cellSize);
+                go.transform.localPosition = new Vector3(origin.x + col * cellW,
+                                                         origin.y - row * cellH, 0f);
+
+                RectTransform tileRt = go.GetComponent<RectTransform>();
+                if (tileRt != null)
+                    tileRt.sizeDelta = new Vector2(cellW, cellH);
 
                 PipeTile tile = go.GetComponent<PipeTile>() ?? go.AddComponent<PipeTile>();
                 tile.Init(tiles[idx], this);
@@ -111,7 +136,9 @@ public class PipeGrid : MonoBehaviour
             Mathf.Clamp(_highlight.y + dy, 0, height - 1));
 
         if (next == _highlight) return;
+        GetTile(_highlight)?.SetHighlighted(false);
         _highlight = next;
+        GetTile(_highlight)?.SetHighlighted(true);
         OnHighlightChanged?.Invoke(_highlight);
     }
 

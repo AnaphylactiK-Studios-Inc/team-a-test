@@ -13,6 +13,9 @@ public class ResourceAllocator : MonoBehaviour
     [SerializeField] Gun shieldBusterGun;
     [SerializeField] Gun mainGun;
 
+    [Header("Player")]
+    [SerializeField] PlayerBody playerBody;
+
     [Header("Heal / Shield Ticks")]
     [SerializeField] float tickInterval = 1f;
     [SerializeField] float baseHealAmount = 5f;
@@ -106,7 +109,7 @@ public class ResourceAllocator : MonoBehaviour
         var wait = new WaitForSeconds(tickInterval);
         while (true)
         {
-            // TODO: call your shield component's Replenish(amount) here
+            playerBody?.ReplenishShield(amount);
             yield return wait;
         }
     }
@@ -116,7 +119,7 @@ public class ResourceAllocator : MonoBehaviour
         var wait = new WaitForSeconds(tickInterval);
         while (true)
         {
-            // TODO: call your player health component's Heal(amount) here
+            playerBody?.Heal(amount);
             yield return wait;
         }
     }
