@@ -19,8 +19,10 @@ public class PipeTile : MonoBehaviour
     // One sprite per tile type in TileType enum order:
     // 0=Dead, 1=Straight, 2=Elbow, 3=T, 4=Cross, 5=Source, 6=Endpoint
     [SerializeField] Sprite[] typeSprites;
+    // One sprite per SystemType for endpoints, in SystemType enum order:
+    // 0=None, 1=ShieldBuster, 2=Gun, 3=Shield, 4=Healing
+    [SerializeField] Sprite[] endpointSystemSprites;
     [SerializeField] GameObject highlightOverlay;
-
     public TileDefinition data;
     PipeGrid _grid;
     Image _image;
@@ -42,8 +44,18 @@ public class PipeTile : MonoBehaviour
 
     void ApplySprite()
     {
+        if (_image == null) return;
+        if (data.type == TileType.Endpoint && endpointSystemSprites != null)
+        {
+            int sysIdx = (int)data.endpointSystem;
+            if (sysIdx < endpointSystemSprites.Length && endpointSystemSprites[sysIdx] != null)
+            {
+                _image.sprite = endpointSystemSprites[sysIdx];
+                return;
+            }
+        }
         int idx = (int)data.type;
-        if (_image != null && typeSprites != null && idx < typeSprites.Length)
+        if (typeSprites != null && idx < typeSprites.Length)
             _image.sprite = typeSprites[idx];
     }
 

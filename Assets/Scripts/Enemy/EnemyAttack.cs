@@ -5,6 +5,7 @@ public class EnemyAttack : MonoBehaviour
     // if player is in range, attack every few seconds
     public float attackInterval = 2f;
     private float attackTimer = 0f;
+    [SerializeField] private float damageAmount = 10f;
 
     private void OnTriggerStay(Collider other)
     {
@@ -13,7 +14,7 @@ public class EnemyAttack : MonoBehaviour
             PlayerBody playerBody = other.GetComponentInParent<PlayerBody>();
             if (playerBody != null && attackTimer >= attackInterval)
             {
-                playerBody.TakeDamage(10f);
+                playerBody.TakeDamage(damageAmount);
                 attackTimer = 0f;
             }
         }

@@ -59,6 +59,12 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 72b31ca30a5022b46b98ae2c9a157366, type: 3}
   - {fileID: 21300000, guid: b0a8525a54dd82447a1373e1a0399794, type: 3}
   - {fileID: 21300000, guid: a068a618620ebe84ba03dbfd16ce06f8, type: 3}
+  endpointSystemSprites:
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 5d195a1db02f41a4399e1896432e44e1, type: 3}
+  - {fileID: 21300000, guid: f3a0a2eda61966446b13a74f9e4f9561, type: 3}
+  - {fileID: 21300000, guid: 26e7178a952f18a4fa1c66a56aa3fc5a, type: 3}
+  - {fileID: 21300000, guid: 2f73060f8b34d014ebc79e98294a12a6, type: 3}
   highlightOverlay: {fileID: 8720542477262885138}
   data:
     type: 0

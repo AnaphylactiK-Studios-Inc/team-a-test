@@ -32,8 +32,8 @@ public class PipePuzzleController : MonoBehaviour
     {
         _input = new InputSystem_Actions();
 
-        _input.Game.SelectA.performed  += _ => SelectResource(0);
-        _input.Game.SelectB.performed  += _ => SelectResource(1);
+        _input.Game.SelectA.performed  += _ => { if (!_puzzleOpen) SelectResource(0); };
+        _input.Game.SelectB.performed  += _ => { if (!_puzzleOpen) SelectResource(1); };
         _input.Game.Confirm.performed  += _ => OnConfirm();
         _input.Game.Cancel.performed   += _ => OnCancel();
     }

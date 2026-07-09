@@ -2,12 +2,19 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ResourceAllocator : MonoBehaviour
 {
     [Header("Pipe Grids")]
     [SerializeField] PipeGrid resourceA;
     [SerializeField] PipeGrid resourceB;
+
+    [Header("Canvas Slots")]
+    [SerializeField] Image slotAImage;
+    [SerializeField] Image slotBImage;
+    // Indexed by SystemType: 0=None, 1=ShieldBuster, 2=Gun, 3=Shield, 4=Healing
+    [SerializeField] Sprite[] systemSprites;
 
     [Header("Gun Systems")]
     [SerializeField] Gun shieldBusterGun;
@@ -50,14 +57,34 @@ public class ResourceAllocator : MonoBehaviour
 
     void OnResourceAChanged(SystemType[] systems)
     {
-        _aTarget = systems.Length > 0 ? systems[0] : SystemType.None;
+        _aTarget = PickTarget(_aTarget, systems);
+        UpdateSlot(slotAImage, _aTarget);
         Recalculate();
     }
 
     void OnResourceBChanged(SystemType[] systems)
     {
-        _bTarget = systems.Length > 0 ? systems[0] : SystemType.None;
+        _bTarget = PickTarget(_bTarget, systems);
+        UpdateSlot(slotBImage, _bTarget);
         Recalculate();
+    }
+
+    // Keep the current target if it's still connected; only switch when it disconnects.
+    static SystemType PickTarget(SystemType current, SystemType[] systems)
+    {
+        if (current != SystemType.None && Array.IndexOf(systems, current) >= 0)
+            return current;
+        return systems.Length > 0 ? systems[0] : SystemType.None;
+    }
+
+    void UpdateSlot(Image slot, SystemType system)
+    {
+        if (slot == null) return;
+        int idx = (int)system;
+        bool hasSprite = system != SystemType.None && systemSprites != null
+                         && idx < systemSprites.Length && systemSprites[idx] != null;
+        slot.enabled = hasSprite;
+        if (hasSprite) slot.sprite = systemSprites[idx];
     }
 
     void Recalculate()

@@ -88,7 +88,6 @@ public class PipeGrid : MonoBehaviour
     public void Solve()
     {
         var powered = new List<SystemType>();
-
         Vector2Int? src = FindSource();
         if (src == null)
         {

@@ -36,7 +36,7 @@ public class PlayerMovement : MonoBehaviour
         x = 0;
         z = 0;
         lastPosition = transform.position;
-        movementLoopCoroutine = StartCoroutine(MovementLoopRoutine());
+        // movementLoopCoroutine = StartCoroutine(MovementLoopRoutine());
     }
 
     // Update is called once per frame

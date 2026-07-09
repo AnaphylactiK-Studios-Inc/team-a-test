@@ -24,9 +24,23 @@ public class PlayerBody : MonoBehaviour
         // damage shield first
         if (playerShield > 0)
         {
-            playerShield = Mathf.Max(0, playerShield - (int)amount);
-            if (shieldBarFill != null)
-                shieldBarFill.fillAmount = (float)playerShield / playerMaxShield;
+            if (amount > playerShield)
+            {
+                float leftoverDamage = amount - playerShield;
+                playerShield = 0;
+                if (shieldBarFill != null)
+                    shieldBarFill.fillAmount = 0f;
+
+                playerHealth = Mathf.Max(0, playerHealth - (int)leftoverDamage);
+                if (healthBarFill != null)
+                    healthBarFill.fillAmount = (float)playerHealth / playerMaxHealth;
+            }
+            else
+            {
+                playerShield = Mathf.Max(0, playerShield - (int)amount);
+                if (shieldBarFill != null)
+                    shieldBarFill.fillAmount = (float)playerShield / playerMaxShield;
+            }
         }
         else
         {
