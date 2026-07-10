@@ -23,14 +23,22 @@ public class PipeTile : MonoBehaviour
     // 0=None, 1=ShieldBuster, 2=Gun, 3=Shield, 4=Healing
     [SerializeField] Sprite[] endpointSystemSprites;
     [SerializeField] GameObject highlightOverlay;
+    [SerializeField] GameObject blockedOverlay;
+
     public TileDefinition data;
     PipeGrid _grid;
     Image _image;
+
+    bool _isBlocked;
+    int _blockHitsRemaining;
+
+    public bool IsBlocked => _isBlocked;
 
     public void Init(TileDefinition def, PipeGrid grid)
     {
         _image = GetComponent<Image>();
         highlightOverlay?.SetActive(false);
+        blockedOverlay?.SetActive(false);
         data = new TileDefinition
         {
             type = def.type,
@@ -77,15 +85,39 @@ public class PipeTile : MonoBehaviour
 
     public void SetHighlighted(bool on) => highlightOverlay?.SetActive(on);
 
+    public void SetBlocked(int hitsToBreak)
+    {
+        _isBlocked = true;
+        _blockHitsRemaining = hitsToBreak;
+        blockedOverlay?.SetActive(true);
+    }
+
     public void Rotate()
     {
         if (data.type == TileType.Dead ||
             data.type == TileType.Source ||
             data.type == TileType.Endpoint) return;
 
+        if (_isBlocked)
+        {
+            _blockHitsRemaining--;
+            if (_blockHitsRemaining <= 0)
+            {
+                _isBlocked = false;
+                blockedOverlay?.SetActive(false);
+            }
+            return;
+        }
+
         data.rotation = (data.rotation + 1) % 4;
         ApplyRotation();
         _grid.Solve();
+    }
+
+    public void ForceRotate(int targetRotation)
+    {
+        data.rotation = targetRotation;
+        ApplyRotation();
     }
 
     void ApplyRotation()

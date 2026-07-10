@@ -52,6 +52,28 @@ public class PipeGridEditor : Editor
             EditorUtility.SetDirty(grid);
         }
 
+        // ── Special Events ───────────────────────────────────
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Special Events", EditorStyles.boldLabel);
+
+        EditorGUI.BeginChangeCheck();
+        float newBlockChance   = EditorGUILayout.FloatField("Block Chance / Second", grid.blockChancePerSecond);
+        int   newBreakMin      = EditorGUILayout.IntField("Block Break Hits Min",   grid.blockBreakHitsMin);
+        int   newBreakMax      = EditorGUILayout.IntField("Block Break Hits Max",   grid.blockBreakHitsMax);
+        float newSpinChance    = EditorGUILayout.Slider("Spin Chance On Hit",       grid.spinChanceOnHit,       0f, 1f);
+        float newRotateChance  = EditorGUILayout.Slider("Grid Rotate Chance On Hit",grid.gridRotateChanceOnHit, 0f, 1f);
+        if (EditorGUI.EndChangeCheck())
+        {
+            Undo.RecordObject(grid, "Edit Special Events");
+            grid.blockChancePerSecond  = Mathf.Max(0f, newBlockChance);
+            grid.blockBreakHitsMin     = Mathf.Max(1, newBreakMin);
+            grid.blockBreakHitsMax     = Mathf.Max(grid.blockBreakHitsMin, newBreakMax);
+            grid.spinChanceOnHit       = newSpinChance;
+            grid.gridRotateChanceOnHit = newRotateChance;
+
+            EditorUtility.SetDirty(grid);
+        }
+
         // ── Grid ─────────────────────────────────────────────
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Puzzle Layout  (row 0 = top)", EditorStyles.boldLabel);

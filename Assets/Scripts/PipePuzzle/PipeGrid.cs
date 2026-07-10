@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,6 +13,18 @@ public class PipeGrid : MonoBehaviour
     [Header("Tiles")]
     public TileDefinition[] tiles;
     public GameObject tilePrefab;
+
+    [Header("Special Events")]
+    [Tooltip("Chance per second that a random rotatable tile becomes blocked")]
+    public float blockChancePerSecond = 0.15f;
+    [Tooltip("Minimum rotate presses needed to unblock a blocked tile")]
+    public int blockBreakHitsMin = 3;
+    [Tooltip("Maximum rotate presses needed to unblock a blocked tile")]
+    public int blockBreakHitsMax = 8;
+    [Tooltip("Chance (0–1) a connected pipe spins by itself when player is hit")]
+    [Range(0f, 1f)] public float spinChanceOnHit = 0.5f;
+    [Tooltip("Chance (0–1) the whole grid rotates 90 degrees when player is hit")]
+    [Range(0f, 1f)] public float gridRotateChanceOnHit = 0.3f;
 
     // Fires with every system currently reached by a complete pipe path from the source
     public event Action<SystemType[]> OnPoweredSystemsChanged;
@@ -31,6 +44,9 @@ public class PipeGrid : MonoBehaviour
 
     PipeTile[] _runtimeTiles;
     Vector2Int _highlight;
+    HashSet<Vector2Int> _connectedTiles = new();
+    bool _gridRotating;
+    int _gridRotationSteps;
 
     void Start()
     {
@@ -38,6 +54,13 @@ public class PipeGrid : MonoBehaviour
         BuildRuntime();
         GetTile(_highlight)?.SetHighlighted(true);
         Solve();
+    }
+
+    void Update()
+    {
+        // Randomly block a tile over time
+        if (UnityEngine.Random.value < blockChancePerSecond * Time.deltaTime)
+            TryBlockRandomTile();
     }
 
     void BuildRuntime()
@@ -50,15 +73,15 @@ public class PipeGrid : MonoBehaviour
 
         if (rt != null)
         {
-            cellW  = rt.rect.width  / width;
-            cellH  = rt.rect.height / height;
+            cellW = rt.rect.width / width;
+            cellH = rt.rect.height / height;
             origin = new Vector2(-rt.rect.width / 2f + cellW / 2f,
                                   rt.rect.height / 2f - cellH / 2f);
         }
         else
         {
-            cellW  = cellSize;
-            cellH  = cellSize;
+            cellW = cellSize;
+            cellH = cellSize;
             origin = Vector2.zero;
         }
 
@@ -87,6 +110,7 @@ public class PipeGrid : MonoBehaviour
 
     public void Solve()
     {
+        _connectedTiles.Clear();
         var powered = new List<SystemType>();
         Vector2Int? src = FindSource();
         if (src == null)
@@ -124,12 +148,21 @@ public class PipeGrid : MonoBehaviour
             }
         }
 
+        _connectedTiles = new HashSet<Vector2Int>(visited);
         OnPoweredSystemsChanged?.Invoke(powered.ToArray());
     }
 
     // Call from your input handler with dx/dy from D-pad or left stick
     public void MoveHighlight(int dx, int dy)
     {
+        // Counter-rotate input to match each 90° clockwise grid rotation
+        for (int i = 0; i < _gridRotationSteps; i++)
+        {
+            int tmp = dx;
+            dx = dy;
+            dy = -tmp;
+        }
+
         Vector2Int next = new Vector2Int(
             Mathf.Clamp(_highlight.x + dx, 0, width - 1),
             Mathf.Clamp(_highlight.y + dy, 0, height - 1));
@@ -146,6 +179,82 @@ public class PipeGrid : MonoBehaviour
 
     public PipeTile GetHighlightedTile() => GetTile(_highlight);
     public Vector2Int GetHighlightPosition() => _highlight;
+
+    // Call this from your player health/hit system whenever the player takes a hit
+    public void OnPlayerHit(bool shieldActive = false)
+    {
+        if (UnityEngine.Random.value < gridRotateChanceOnHit)
+            CoroutineRunner.Run(AnimateGridRotation());
+
+        float chance = shieldActive ? 0.5f : spinChanceOnHit;
+        if (UnityEngine.Random.value < chance)
+            TrySpinRandomConnectedPipe();
+    }
+
+    void TryBlockRandomTile()
+    {
+        var candidates = new List<int>();
+        for (int i = 0; i < _runtimeTiles.Length; i++)
+        {
+            PipeTile t = _runtimeTiles[i];
+            if (t == null) continue;
+            if (t.data.type == TileType.Dead ||
+                t.data.type == TileType.Source ||
+                t.data.type == TileType.Endpoint) continue;
+            if (t.IsBlocked) continue;
+            candidates.Add(i);
+        }
+        if (candidates.Count == 0) return;
+
+        int chosen = candidates[UnityEngine.Random.Range(0, candidates.Count)];
+        int hits = UnityEngine.Random.Range(blockBreakHitsMin, blockBreakHitsMax + 1);
+        _runtimeTiles[chosen].SetBlocked(hits);
+    }
+
+    void TrySpinRandomConnectedPipe()
+    {
+        var candidates = new List<Vector2Int>();
+        foreach (Vector2Int pos in _connectedTiles)
+        {
+            PipeTile t = GetTile(pos);
+            if (t == null) continue;
+            if (t.data.type == TileType.Dead ||
+                t.data.type == TileType.Source ||
+                t.data.type == TileType.Endpoint) continue;
+            if (t.IsBlocked) continue;
+            candidates.Add(pos);
+        }
+        if (candidates.Count == 0) return;
+
+        Vector2Int chosenPos = candidates[UnityEngine.Random.Range(0, candidates.Count)];
+        PipeTile chosen = GetTile(chosenPos);
+        int targetRotation = (chosen.data.rotation + UnityEngine.Random.Range(1, 4)) % 4;
+        chosen.ForceRotate(targetRotation);
+        Solve();
+    }
+
+    IEnumerator AnimateGridRotation()
+    {
+        if (_gridRotating) yield break;
+        _gridRotating = true;
+
+        float startAngle = transform.localEulerAngles.z;
+        float endAngle = startAngle - 90f;
+        float duration = 0.6f;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.SmoothStep(0f, 1f, elapsed / duration);
+            transform.localEulerAngles = new Vector3(0f, 0f, Mathf.Lerp(startAngle, endAngle, t));
+            yield return null;
+        }
+
+        transform.localEulerAngles = new Vector3(0f, 0f, endAngle);
+        _gridRotationSteps = (_gridRotationSteps + 1) % 4;
+        _gridRotating = false;
+    }
 
     Vector2Int? FindSource()
     {

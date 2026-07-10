@@ -70,6 +70,7 @@ public class ResourceAllocator : MonoBehaviour
     }
 
     // Keep the current target if it's still connected; only switch when it disconnects.
+    // Can change behaviour
     static SystemType PickTarget(SystemType current, SystemType[] systems)
     {
         if (current != SystemType.None && Array.IndexOf(systems, current) >= 0)

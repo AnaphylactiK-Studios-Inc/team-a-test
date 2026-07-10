@@ -10,7 +10,11 @@ public class PlayerBody : MonoBehaviour
     [SerializeField] Image healthBarFill;
     [SerializeField] Image shieldBarFill;
     [SerializeField] GameObject gameOverScreen;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    [SerializeField] PipeGrid pipeGridA;
+    [SerializeField] PipeGrid pipeGridB;
+    [SerializeField] CameraShake cameraShake;
+    [SerializeField] float shakeDuration = 0.25f;
+    [SerializeField] float shakeMagnitude = 0.15f;
 
     void Start()
     {
@@ -21,6 +25,11 @@ public class PlayerBody : MonoBehaviour
     }
     public void TakeDamage(float amount)
     {
+        bool shielded = playerShield > 0;
+        pipeGridA.OnPlayerHit(shielded);
+        pipeGridB.OnPlayerHit(shielded);
+        if (cameraShake != null) cameraShake.Shake(shakeDuration, shakeMagnitude);
+
         // damage shield first
         if (playerShield > 0)
         {

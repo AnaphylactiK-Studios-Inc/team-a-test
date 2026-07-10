@@ -204,7 +204,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17cc58c9a007aef45928dd014cf01ad6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyBody
-  maxHealth: 100
+  maxHealth: 70
   healthBarFill: {fileID: 8543182670123055305}
 --- !u!1 &6057720737444071388
 GameObject:
@@ -326,8 +326,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c3f4bccd43e89d41adabe5632e545b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  attackInterval: 2
-  damageAmount: 10
+  attackInterval: 8
+  damageAmount: 40
 --- !u!65 &8178240209618594237
 BoxCollider:
   m_ObjectHideFlags: 0

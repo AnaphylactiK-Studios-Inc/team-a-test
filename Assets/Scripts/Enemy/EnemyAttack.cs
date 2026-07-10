@@ -2,26 +2,21 @@ using UnityEngine;
 
 public class EnemyAttack : MonoBehaviour
 {
-    // if player is in range, attack every few seconds
     public float attackInterval = 2f;
-    private float attackTimer = 0f;
-    [SerializeField] private float damageAmount = 10f;
+    [SerializeField] float damageAmount = 10f;
 
-    private void OnTriggerStay(Collider other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            PlayerBody playerBody = other.GetComponentInParent<PlayerBody>();
-            if (playerBody != null && attackTimer >= attackInterval)
-            {
-                playerBody.TakeDamage(damageAmount);
-                attackTimer = 0f;
-            }
-        }
-    }
+    float _attackTimer;
 
-    private void Update()
+    void Update() => _attackTimer += Time.deltaTime;
+
+    void OnTriggerStay(Collider other)
     {
-        attackTimer += Time.deltaTime;
+        if (!other.CompareTag("Player")) return;
+
+        PlayerBody playerBody = other.GetComponentInParent<PlayerBody>();
+        if (playerBody == null || _attackTimer < attackInterval) return;
+
+        playerBody.TakeDamage(damageAmount);
+        _attackTimer = 0f;
     }
 }
